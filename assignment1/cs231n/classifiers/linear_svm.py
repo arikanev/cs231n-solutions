@@ -133,18 +133,20 @@ def svm_loss_vectorized(W, X, y, reg):
   X_index_mask = np.zeros(margins.shape)
   
   # find classes where margins are greater than zero
-  X_mask[margins > 0] = 1
-  incorrect_counts = np.sum(X_mask, axis=1)
+  X_index_mask[margins > 0] = 1
+  incorrect_counts = np.sum(X_index_mask, axis=1)
+
   #vectorized version of calculating gradient matrix we take the places where there
   # is a correct probability, and we set equal to the negation of values in 
   # incorrect counts. There is one incorrect_count number per row, (X sample).
-  X_mask[np.arange(num_train), y] = -incorrect_counts
+  X_index_mask[np.arange(num_train), y] = -incorrect_counts
   # take the transpose of the dot product to calculate dW
-  dW = X.T.dot(X_mask)
+  dW = X.T.dot(X_index_mask)
     
   #average the grad weight matrix and regularize it
   dW /= num_train
   dW += reg*W
+  
 
 
   return loss, dW
