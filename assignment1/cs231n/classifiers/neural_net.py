@@ -76,7 +76,10 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    
+    # we add a relu activation function for the hidden layer
+    h1 = np.maximum(0, X.dot(W1) + b1)
+    scores = h1.dot(W2) + b2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -93,7 +96,11 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    shift_scores = scores - np.amax(scores,axis=1).reshape(-1,1)
+    softmax = np.exp(shift_scores)/np.sum(np.exp(shift_scores), axis=1).reshape(-1,1)
+    loss = -np.sum(np.log(softmax[range(N), list(y)]))
+    loss /= N
+    loss += 0.5* reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -105,7 +112,17 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    dSoftmax = softmax.copy()
+    dSoftmax[range(N), list(y)] += -1
+    dSoftmax /= N
+    grads['W2'] = h1.T.dot(dSoftmax) + reg * W2
+    grads['b2'] = np.sum(dSoftmax, axis=0)
+    
+    dh1 = dSoftmax.dot(W2.T)
+    drelu = (h1 > 0) * dh1
+    grads['W1'] = X.T.dot(drelu) + reg * W1
+    grads['b1'] = np.sum(drelu, axis=0)
+    
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
